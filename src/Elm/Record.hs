@@ -27,7 +27,7 @@ instance HasType ElmDatatype where
         sformat ("type " % stext % cr % "    = " % stext) typeName <$> render constructor
     render (ElmDatatype typeName constructor@(NamedEmptyConstructor _ )) =
         sformat ("type " % stext % cr % "    = " % stext) typeName <$> render constructor
-    render (ElmPrimitive primitive) = render primitive
+    render (ElmPrimitive primitive) = renderName primitive
 
 instance HasTypeName ElmDatatype where
     renderName (ElmDatatype typeName _) = pure typeName
@@ -47,32 +47,29 @@ instance HasType ElmValue where
     render (ElmRef name) = pure name
     render (Values x y) =
         sformat (stext % cr % "    , " % stext) <$> render x <*> render y
-    render (ElmPrimitiveRef primitive) = render primitive
+    render (ElmPrimitiveRef primitive) = renderName primitive
     render (ElmField name value) = do
         fieldModifier <- asks fieldLabelModifier
         sformat (stext % " : " % stext) (fieldModifier name) <$> render value
 
-instance HasType ElmPrimitive where
-    render (EList (ElmPrimitive EChar)) = render EString
-    render (EList value) =
+instance HasTypeName ElmPrimitive where
+    renderName (EList (ElmPrimitive EChar)) = renderName EString
+    renderName (EList value) =
         sformat ("List " % (parenthesize %. stext)) <$> renderName value
-    render (ETuple2 x y) =
-        sformat ("( " % stext % ", " % stext % " )") <$> render x <*> render y
-    render (EMaybe value) =
+    renderName (ETuple2 x y) =
+        sformat ("( " % stext % ", " % stext % " )") <$> renderName x <*> renderName y
+    renderName (EMaybe value) =
         sformat ("Maybe " % (parenthesize %. stext)) <$> renderName value
-    render (EDict k v) =
+    renderName (EDict k v) =
         sformat ("Dict " % (parenthesize %. stext) % " " % (parenthesize %. stext))
         <$> renderName k <*> renderName v
-    render EInt = pure "Int"
-    render EDate = pure "Date"
-    render EBool = pure "Bool"
-    render EChar = pure "Char"
-    render EString = pure "String"
-    render EUnit = pure "()"
-    render EFloat = pure "Float"
-
-instance HasTypeName ElmPrimitive where
-    renderName x = render x
+    renderName EInt = pure "Int"
+    renderName EDate = pure "Date"
+    renderName EBool = pure "Bool"
+    renderName EChar = pure "Char"
+    renderName EString = pure "String"
+    renderName EUnit = pure "()"
+    renderName EFloat = pure "Float"
 
 toElmTypeNameWith :: ElmType a => Options -> a -> Text
 toElmTypeNameWith options x = runReader (renderName (toElmType x)) options

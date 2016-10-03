@@ -33,7 +33,7 @@ instance HasDecoder ElmDatatype where
         render constructor
       where
         fnName = sformat ("decode" % stext) name
-    render (ElmPrimitive primitive) = render primitive
+    render (ElmPrimitive primitive) = renderName primitive
 
 
 instance HasDecoderName ElmDatatype where
@@ -50,7 +50,7 @@ instance HasDecoder ElmConstructor where
 
 instance HasDecoder ElmValue where
     render (ElmRef name) = pure (sformat ("decode" % stext) name)
-    render (ElmPrimitiveRef primitive) = render primitive
+    render (ElmPrimitiveRef primitive) = renderName primitive
     render (Values x y) = sformat (stext % cr % stext) <$> render x <*> render y
     render (ElmField name value) = do
         fieldModifier <- asks fieldLabelModifier
@@ -60,29 +60,25 @@ instance HasDecoder ElmValue where
             render value
 
 
-instance HasDecoder ElmPrimitive where
-    render (EList (ElmPrimitive EChar)) = pure "string"
-    render (EList value) =
+instance HasDecoderName ElmPrimitive where
+    renderName (EList (ElmPrimitive EChar)) = pure "string"
+    renderName (EList value) =
         sformat ("(list " % stext % ")") <$> renderName value
-    render (EDict key value) =
+    renderName (EDict key value) =
         sformat ("(map Dict.fromList " % stext % ")") <$>
         renderName (EList (ElmPrimitive (ETuple2 (ElmPrimitive key) value)))
-    render (EMaybe value) =
+    renderName (EMaybe value) =
         sformat ("(maybe " % stext % ")") <$> renderName value
-    render (ETuple2 x y) =
+    renderName (ETuple2 x y) =
         sformat ("(tuple2 (,) " % stext % " " % stext % ")")
         <$> renderName x <*> renderName y
-    render EUnit = pure "(succeed ())"
-    render EDate = pure "(customDecoder string Date.fromString)"
-    render EInt = pure "int"
-    render EBool = pure "bool"
-    render EChar = pure "char"
-    render EFloat = pure "float"
-    render EString = pure "string"
-
-
-instance HasDecoderName ElmPrimitive where
-    renderName x = render x
+    renderName EUnit = pure "(succeed ())"
+    renderName EDate = pure "(customDecoder string Date.fromString)"
+    renderName EInt = pure "int"
+    renderName EBool = pure "bool"
+    renderName EChar = pure "char"
+    renderName EFloat = pure "float"
+    renderName EString = pure "string"
 
 
 toElmDecoderNameWith :: ElmType a => Options -> a -> Text
