@@ -113,6 +113,21 @@ toElmTypeSpec =
          (defaultOptions {fieldLabelModifier = withPrefix "comment"})
          (Proxy :: Proxy Comment)
          "test/CommentTypeWithOptions.elm"
+     describe "Convert to Elm type names." $ do
+      it "toElmTypeName Post" $
+        toElmTypeName (Proxy :: Proxy Post) `shouldBe` "Post"
+      it "toElmTypeName String" $
+        toElmTypeName (Proxy :: Proxy String) `shouldBe` "String"
+      it "toElmTypeName [Char]" $
+        toElmTypeName (Proxy :: Proxy [Char]) `shouldBe` "String"
+      it "toElmTypeName Maybe String" $
+        toElmTypeName (Proxy :: Proxy (Maybe String)) `shouldBe` "Maybe String"
+      it "toElmTypeName Map Int Comment" $
+        toElmTypeName (Proxy :: Proxy (Map Int Comment)) `shouldBe` "Dict Int Comment"
+      it "toElmTypeName [Maybe String]" $
+        toElmTypeName (Proxy :: Proxy [Maybe String]) `shouldBe` "List (Maybe String)"
+      it "toElmTypeName List (Map Int (Maybe String))" $
+        toElmTypeName (Proxy :: Proxy (Map Int (Maybe String))) `shouldBe` "Dict Int (Maybe String)"
 
 toElmDecoderSpec :: Hspec.Spec
 toElmDecoderSpec =
@@ -175,6 +190,21 @@ toElmDecoderSpec =
          (defaultOptions {fieldLabelModifier = withPrefix "comment"})
          (Proxy :: Proxy Comment)
          "test/CommentDecoderWithOptions.elm"
+     describe "Convert to Elm decoder names." $ do
+      it "toElmDecoderName Post" $
+        toElmDecoderName (Proxy :: Proxy Post) `shouldBe` "decodePost"
+      it "toElmDecoderName String" $
+        toElmDecoderName (Proxy :: Proxy String) `shouldBe` "string"
+      it "toElmDecoderName [Char]" $
+        toElmDecoderName (Proxy :: Proxy [Char]) `shouldBe` "string"
+      it "toElmDecoderName Maybe String" $
+        toElmDecoderName (Proxy :: Proxy (Maybe String)) `shouldBe` "(maybe string)"
+      it "toElmDecoderName Map Int Comment" $
+        toElmDecoderName (Proxy :: Proxy (Map Int Comment)) `shouldBe` "(map Dict.fromList (list (tuple2 (,) int decodeComment)))"
+      it "toElmDecoderName [Maybe String]" $
+        toElmDecoderName (Proxy :: Proxy [Maybe String]) `shouldBe` "(list (maybe string))"
+      it "toElmDecoderName List (Map Int (Maybe String))" $
+        toElmDecoderName (Proxy :: Proxy (Map Int (Maybe String))) `shouldBe` "(map Dict.fromList (list (tuple2 (,) int (maybe string))))"
 
 toElmEncoderSpec :: Hspec.Spec
 toElmEncoderSpec =
@@ -233,6 +263,21 @@ toElmEncoderSpec =
          (defaultOptions {fieldLabelModifier = withPrefix "post"})
          (Proxy :: Proxy Post)
          "test/PostEncoderWithOptions.elm"
+     describe "Convert to Elm encoder names." $ do
+      it "toElmEncoderName Post" $
+        toElmEncoderName (Proxy :: Proxy Post) `shouldBe` "encodePost"
+      it "toElmEncoderName String" $
+        toElmEncoderName (Proxy :: Proxy String) `shouldBe` "string"
+      it "toElmEncoderName [Char]" $
+        toElmEncoderName (Proxy :: Proxy [Char]) `shouldBe` "string"
+      it "toElmEncoderName Maybe String" $
+        toElmEncoderName (Proxy :: Proxy (Maybe String)) `shouldBe` "(Maybe.withDefault null << Maybe.map string)"
+      it "toElmEncoderName Map Int Comment" $
+        toElmEncoderName (Proxy :: Proxy (Map Int Comment)) `shouldBe` "(dict int encodeComment)"
+      it "toElmEncoderName [Maybe String]" $
+        toElmEncoderName (Proxy :: Proxy [Maybe String]) `shouldBe` "(list << List.map (Maybe.withDefault null << Maybe.map string))"
+      it "toElmEncoderName List (Map Int (Maybe String))" $
+        toElmEncoderName (Proxy :: Proxy (Map Int (Maybe String))) `shouldBe` "(dict int (Maybe.withDefault null << Maybe.map string))"
 
 shouldMatchTypeSource
   :: ElmType a
