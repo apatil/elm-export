@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Elm.Record
-  ( toElmTypeName
-  , toElmTypeNameWith
+  ( toElmTypeRef
+  , toElmTypeRefWith
   , toElmTypeSource
   , toElmTypeSourceWith
   ) where
@@ -15,8 +15,8 @@ import           Formatting
 class HasType a where
   render :: a -> Reader Options Text
 
-class HasTypeName a where
-  renderName :: a -> Reader Options Text
+class HasTypeRef a where
+  renderRef :: a -> Reader Options Text
 
 instance HasType ElmDatatype where
     render (ElmDatatype typeName constructor@(RecordConstructor _ _)) =
@@ -27,11 +27,11 @@ instance HasType ElmDatatype where
         sformat ("type " % stext % cr % "    = " % stext) typeName <$> render constructor
     render (ElmDatatype typeName constructor@(NamedEmptyConstructor _ )) =
         sformat ("type " % stext % cr % "    = " % stext) typeName <$> render constructor
-    render (ElmPrimitive primitive) = renderName primitive
+    render (ElmPrimitive primitive) = renderRef primitive
 
-instance HasTypeName ElmDatatype where
-    renderName (ElmDatatype typeName _) = pure typeName
-    renderName (ElmPrimitive primitive) = renderName primitive
+instance HasTypeRef ElmDatatype where
+    renderRef (ElmDatatype typeName _) = pure typeName
+    renderRef (ElmPrimitive primitive) = renderRef primitive
 
 instance HasType ElmConstructor where
     render (RecordConstructor _ value) =
@@ -47,35 +47,35 @@ instance HasType ElmValue where
     render (ElmRef name) = pure name
     render (Values x y) =
         sformat (stext % cr % "    , " % stext) <$> render x <*> render y
-    render (ElmPrimitiveRef primitive) = renderName primitive
+    render (ElmPrimitiveRef primitive) = renderRef primitive
     render (ElmField name value) = do
         fieldModifier <- asks fieldLabelModifier
         sformat (stext % " : " % stext) (fieldModifier name) <$> render value
 
-instance HasTypeName ElmPrimitive where
-    renderName (EList (ElmPrimitive EChar)) = renderName EString
-    renderName (EList value) =
-        sformat ("List " % (parenthesize %. stext)) <$> renderName value
-    renderName (ETuple2 x y) =
-        sformat ("( " % stext % ", " % stext % " )") <$> renderName x <*> renderName y
-    renderName (EMaybe value) =
-        sformat ("Maybe " % (parenthesize %. stext)) <$> renderName value
-    renderName (EDict k v) =
+instance HasTypeRef ElmPrimitive where
+    renderRef (EList (ElmPrimitive EChar)) = renderRef EString
+    renderRef (EList value) =
+        sformat ("List " % (parenthesize %. stext)) <$> renderRef value
+    renderRef (ETuple2 x y) =
+        sformat ("( " % stext % ", " % stext % " )") <$> renderRef x <*> renderRef y
+    renderRef (EMaybe value) =
+        sformat ("Maybe " % (parenthesize %. stext)) <$> renderRef value
+    renderRef (EDict k v) =
         sformat ("Dict " % (parenthesize %. stext) % " " % (parenthesize %. stext))
-        <$> renderName k <*> renderName v
-    renderName EInt = pure "Int"
-    renderName EDate = pure "Date"
-    renderName EBool = pure "Bool"
-    renderName EChar = pure "Char"
-    renderName EString = pure "String"
-    renderName EUnit = pure "()"
-    renderName EFloat = pure "Float"
+        <$> renderRef k <*> renderRef v
+    renderRef EInt = pure "Int"
+    renderRef EDate = pure "Date"
+    renderRef EBool = pure "Bool"
+    renderRef EChar = pure "Char"
+    renderRef EString = pure "String"
+    renderRef EUnit = pure "()"
+    renderRef EFloat = pure "Float"
 
-toElmTypeNameWith :: ElmType a => Options -> a -> Text
-toElmTypeNameWith options x = runReader (renderName (toElmType x)) options
+toElmTypeRefWith :: ElmType a => Options -> a -> Text
+toElmTypeRefWith options x = runReader (renderRef (toElmType x)) options
 
-toElmTypeName :: ElmType a => a -> Text
-toElmTypeName = toElmTypeNameWith defaultOptions
+toElmTypeRef :: ElmType a => a -> Text
+toElmTypeRef = toElmTypeRefWith defaultOptions
 
 toElmTypeSourceWith :: ElmType a => Options -> a -> Text
 toElmTypeSourceWith options x = runReader (render (toElmType x)) options
