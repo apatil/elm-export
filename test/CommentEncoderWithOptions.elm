@@ -3,16 +3,16 @@ module CommentEncoderWithOptions exposing (..)
 import CommentType exposing (..)
 import Exts.Date exposing (..)
 import Exts.Json.Encode exposing (..)
-import Json.Encode exposing (..)
+import Json.Encode as E
 
 
-encodeComment : Comment -> Value
+encodeComment : Comment -> E.Value
 encodeComment x =
-    object
-        [ ( "commentPostId", int x.postId )
-        , ( "commentText", string x.text )
-        , ( "commentMainCategories", (tuple2 string string) x.mainCategories )
-        , ( "commentPublished", bool x.published )
-        , ( "commentCreated", (string << toISOString) x.created )
-        , ( "commentTags", (dict string int) x.tags )
+    E.object
+        [ ( "commentPostId", E.int x.postId )
+        , ( "commentText", E.string x.text )
+        , ( "commentMainCategories", (E.tuple2 E.string E.string) x.mainCategories )
+        , ( "commentPublished", E.bool x.published )
+        , ( "commentCreated", (E.string << toISOString) x.created )
+        , ( "commentTags", (E.dict E.string E.int) x.tags )
         ]
